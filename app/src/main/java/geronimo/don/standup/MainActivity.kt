@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
         alarmToggle.setOnCheckedChangeListener { compoundButton, isChecked ->
             if(isChecked){
                 toastMessage=getString(R.string.toast_on)
-                val repeatInterval = 100L//AlarmManager.INTERVAL_FIFTEEN_MINUTES
+                val repeatInterval = AlarmManager.INTERVAL_FIFTEEN_MINUTES
                 val triggerTime = SystemClock.elapsedRealtime() + repeatInterval
                 alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,triggerTime, repeatInterval,notifyPendingIntent)
             }

@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.location.Location
+import android.net.Uri
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -16,6 +17,8 @@ class AlarmReceiver : BroadcastReceiver() {
 
     private lateinit var mNotificationManager: NotificationManager
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+
+
 
     @SuppressLint("MissingPermission")
     override fun onReceive(context: Context, intent: Intent) {
@@ -38,9 +41,13 @@ class AlarmReceiver : BroadcastReceiver() {
             val lon = location?.longitude
             Log.d("TESTE", "$lat : $lon")
             //...
-            val contentIntent = Intent(context,MainActivity::class.java)
+            val gmmIntentUri = Uri.parse("geo:$lat,$lon")
+            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+            mapIntent.setPackage("com.google.android.apps.maps")
+
+            //val contentIntent = Intent(context,MainActivity::class.java)
             val contentPendingIntent =
-                PendingIntent.getActivity(context, MainActivity.NOTIFICATION_ID, contentIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+                PendingIntent.getActivity(context, MainActivity.NOTIFICATION_ID, mapIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
             val builder = NotificationCompat.Builder(context, MainActivity.PRIMARY_CHANNEL_ID)
                 .setSmallIcon(R.drawable.notification_icon_background)
