@@ -1,5 +1,6 @@
 package geronimo.don.standup
 
+import android.Manifest
 import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -12,8 +13,15 @@ import android.widget.CompoundButton
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import android.app.PendingIntent
+import android.content.pm.PackageManager
 import androidx.core.app.NotificationCompat
 import android.os.SystemClock
+import android.util.Log
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.common.api.GoogleApiClient
 
 
 
@@ -21,9 +29,31 @@ import android.os.SystemClock
 class MainActivity : AppCompatActivity() {
     private var toastMessage = ""
     private lateinit var  mNotificationManager: NotificationManager
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when(requestCode){
+            REQUEST_COARSE_LOCATION->{
+                if(grantResults.size >0 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
+                    Log.d("TESTE", "Permissáo concedida")
+                }
+                else{
+                    Toast.makeText(this, "SEM PERMISSÁO DE LOCALIZAÇAO", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+        if(permissionCheck!=PackageManager.PERMISSION_GRANTED){
+            Log.d("TESTE", "sem permissao")
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), REQUEST_COARSE_LOCATION)
+        }
+
         createNotificationChannel()
         val notifyIntent = Intent(this, AlarmReceiver::class.java)
         val alarmUp = PendingIntent.getBroadcast(this, NOTIFICATION_ID, notifyIntent, PendingIntent.FLAG_NO_CREATE)!=null
@@ -36,7 +66,7 @@ class MainActivity : AppCompatActivity() {
         alarmToggle.setOnCheckedChangeListener { compoundButton, isChecked ->
             if(isChecked){
                 toastMessage=getString(R.string.toast_on)
-                val repeatInterval = 2000L//AlarmManager.INTERVAL_FIFTEEN_MINUTES
+                val repeatInterval = 100L//AlarmManager.INTERVAL_FIFTEEN_MINUTES
                 val triggerTime = SystemClock.elapsedRealtime() + repeatInterval
                 alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,triggerTime, repeatInterval,notifyPendingIntent)
             }
@@ -47,6 +77,8 @@ class MainActivity : AppCompatActivity() {
             }
             Toast.makeText(this, toastMessage, Toast.LENGTH_SHORT).show()
         }
+
+
     }
 
     private fun createNotificationChannel(){
@@ -62,24 +94,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-//    private fun deliverNotification(context: Context){
-//        val contentIntent = Intent(context,MainActivity::class.java)
-//        val contentPendingIntent =
-//            PendingIntent.getActivity(context, NOTIFICATION_ID, contentIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-//
-//        val builder = NotificationCompat.Builder(context, PRIMARY_CHANNEL_ID)
-//            .setSmallIcon(R.drawable.notification_icon_background)
-//            .setContentTitle("Stand up alert")
-//            .setContentText("LEVANTA E ANDA")
-//            .setContentIntent(contentPendingIntent)
-//            .setPriority(NotificationCompat.PRIORITY_HIGH)
-//            .setAutoCancel(false)
-//            .setDefaults(NotificationCompat.DEFAULT_ALL)
-//        mNotificationManager.notify(NOTIFICATION_ID, builder.build())
-//    }
 
     companion object {
         val NOTIFICATION_ID = 0
         val PRIMARY_CHANNEL_ID="primary_notification_channel"
+        val REQUEST_COARSE_LOCATION = 999
     }
 }
